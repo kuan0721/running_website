@@ -496,6 +496,7 @@ document.addEventListener("DOMContentLoaded", function () {
               L.latLng(endCoord[0], endCoord[1])
             ],
             routeWhileDragging: false,
+            show: false,  // ← 關閉預設指示面板
             formatter: new L.Routing.Formatter(L.Routing.Localization['zh-TW'])
           }).addTo(map);
           
