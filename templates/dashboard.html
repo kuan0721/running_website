@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的綠色代幣</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -23,6 +24,21 @@
             </div>
             <div class="impact-info">
                 <p>您已經幫助減少了約 <span class="impact-number">{{ tokens // 2 }}</span> kg的碳排放！</p>
+            </div>
+        </div>
+
+        <div class="eco-tree-container">
+            <h2>我的環保成就樹</h2>
+            <div class="tree-visual">
+                <div id="tree-trunk"></div>
+                <div id="tree-canopy"></div>
+                <div id="tree-level">第 1 級</div>
+            </div>
+            <div class="tree-progress">
+                <div class="progress-text">距離下一級還需: <span id="next-level-km">5.0</span> 公里</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="tree-progress-bar"></div>
+                </div>
             </div>
         </div>
         
@@ -46,9 +62,10 @@
                 <div id="tracking-status" class="hidden">
                     <p>正在記錄您的行程...</p>
                     <div class="progress-container">
-                        <div class="progress-label">已行走距離: <span id="distance-value">0.00</span> 公里</div>
-                        <div class="progress-label">已記錄時間: <span id="time-value">00:00:00</span></div>
+                        <div class="progress-bar" id="progress-bar"></div>
                     </div>
+                    <div class="progress-label">已行走距離: <span id="distance-value">0.00</span> 公里</div>
+                    <div class="progress-label">已記錄時間: <span id="time-value">00:00:00</span></div>
                 </div>
             </div>
         </div>

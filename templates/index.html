@@ -117,5 +117,26 @@
       document.getElementById(tabId).classList.add('active');
     }
   </script>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('d-none');
+        tab.classList.remove('active', 'animate__animated', 'animate__fadeIn');
+      });
+      
+      const activeTab = document.getElementById(tabId);
+      activeTab.classList.remove('d-none');
+      activeTab.classList.add('active', 'animate__animated', 'animate__fadeIn');
+      
+      // Update the active state of the buttons
+      document.querySelectorAll('.tabs button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Find the button that triggered this tab
+      document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+    }
+  </script>
 </body>
 </html>

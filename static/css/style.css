@@ -312,3 +312,234 @@ table th {
 .btn-google:hover {
   background-color: #218838;
 }
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.token-count {
+  font-size: 48px;
+  font-weight: bold;
+  color: #2ecc71;
+  animation: countUp 1s ease-out;
+}
+
+.token-earned {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes progressBar {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.progress-bar {
+  height: 10px;
+  background-color: #2ecc71;
+  border-radius: 5px;
+  width: 0;
+  transition: width 0.5s;
+}
+
+.progress-container {
+  margin-top: 15px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); filter: brightness(1.2); }
+  100% { transform: scale(1); }
+}
+
+.celebrating {
+  animation: celebrate 1s ease-in-out;
+}
+
+.token-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.token {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #2ecc71;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: fall linear;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+.reward-card {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reward-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 電子樹相關樣式 */
+.eco-tree-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.tree-visual {
+  position: relative;
+  height: 300px;
+  width: 250px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#tree-trunk {
+  width: 30px;
+  height: 80px;
+  background: linear-gradient(to right, #8B4513, #A0522D, #8B4513);
+  border-radius: 5px;
+  transition: height 1s ease;
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
+}
+
+#tree-canopy {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, #32CD32, #228B22);
+  border-radius: 50%;
+  margin-bottom: 80px;
+  transition: all 1s ease;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+}
+
+#tree-level {
+  position: absolute;
+  bottom: -30px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  color: #228B22;
+  font-size: 18px;
+}
+
+.tree-progress {
+  margin-top: 30px;
+  width: 80%;
+  margin: 30px auto 0;
+}
+
+.progress-text {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+#next-level-km {
+  color: #2ecc71;
+}
+
+/* 電子樹階段樣式 */
+.tree-level-1 #tree-canopy {
+  width: 80px;
+  height: 80px;
+  opacity: 0.7;
+}
+
+.tree-level-2 #tree-canopy {
+  width: 120px;
+  height: 120px;
+  opacity: 0.8;
+}
+
+.tree-level-3 #tree-canopy {
+  width: 160px;
+  height: 160px;
+  opacity: 0.9;
+}
+
+.tree-level-4 #tree-canopy {
+  width: 200px;
+  height: 180px;
+  background: radial-gradient(circle, #32CD32, #228B22);
+  border-radius: 60% 60% 60% 60%;
+}
+
+.tree-level-5 #tree-canopy {
+  width: 220px;
+  height: 200px;
+  background: radial-gradient(circle, #32CD32, #228B22);
+  border-radius: 60% 60% 60% 60%;
+  box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
+}
+
+.tree-level-5 #tree-trunk {
+  height: 100px;
+  width: 40px;
+}
+
+/* 樹的動畫效果 */
+@keyframes grow {
+  0% { transform: scale(0.95); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.tree-growing {
+  animation: grow 1s ease;
+}
+
+/* 樹葉飄落的效果 */
+.leaf {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: rgba(50, 205, 50, 0.7);
+  border-radius: 50%;
+  z-index: 1;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  from {
+      transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+      transform: translate(var(--end-x), 300px) rotate(360deg);
+      opacity: 0;
+  }
+}
