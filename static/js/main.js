@@ -449,3 +449,14 @@ function showTab(tabId) {
         }
     }
   });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            console.log('登出按鈕被點擊');
+            // 如果需要使用AJAX登出，可以在這裡添加代碼
+            // 或者讓默認的連結行為繼續執行
+        });
+    }
+});
