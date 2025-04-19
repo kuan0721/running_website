@@ -1,64 +1,121 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>綠色代幣系統</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>綠色代幣系統</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>永續交通小幫手</h1>
-            <p>記錄您的綠色交通選擇，獲得環保代幣!</p>
-        </header>
-        
-        <div class="auth-container">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="showTab('login')">登入</button>
-                <button class="tab-btn" onclick="showTab('register')">註冊</button>
-            </div>
-            
-            <div id="login" class="tab-content active">
-                <form action="{{ url_for('login') }}" method="post">
-                    <div class="form-group">
-                        <label for="login-username">使用者名稱</label>
-                        <input type="text" id="login-username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">密碼</label>
-                        <input type="password" id="login-password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn">登入</button>
-                </form>
-            </div>
-            
-            <div id="register" class="tab-content">
-                <form action="{{ url_for('register') }}" method="post">
-                    <div class="form-group">
-                        <label for="reg-username">使用者名稱</label>
-                        <input type="text" id="reg-username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-password">密碼</label>
-                        <input type="password" id="reg-password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn">註冊</button>
-                </form>
-            </div>
-        </div>
-        
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <p class="message">{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+  <div class="container py-5">
+    <header class="text-center mb-4">
+      <h1>永續交通小幫手</h1>
+      <p>記錄您的綠色交通選擇，獲得環保代幣！</p>
+    </header>
+
+    <div class="auth-container mx-auto" style="max-width: 400px;">
+      <div class="tabs mb-3 d-flex justify-content-around">
+        <button class="btn btn-outline-primary active" onclick="showTab('login')">登入</button>
+        <button class="btn btn-outline-secondary" onclick="showTab('register')">註冊</button>
+      </div>
+
+      <!-- 登入表單 -->
+      <div id="login" class="tab-content active">
+        <form action="{{ url_for('login') }}" method="post">
+          <div class="form-group mb-3">
+            <label for="login-username">使用者名稱</label>
+            <input type="text" id="login-username" name="username" class="form-control" required>
+          </div>
+          <div class="form-group mb-3">
+            <label for="login-password">密碼</label>
+            <input type="password" id="login-password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">登入</button>
+        </form>
+        <hr>
+        <button id="google-signin" class="btn btn-danger w-100">使用 Google 登入</button>
+      </div>
+
+      <!-- 註冊表單 -->
+      <div id="register" class="tab-content d-none">
+        <form action="{{ url_for('register') }}" method="post">
+          <div class="form-group mb-3">
+            <label for="reg-username">使用者名稱</label>
+            <input type="text" id="reg-username" name="username" class="form-control" required>
+          </div>
+          <div class="form-group mb-3">
+            <label for="reg-password">密碼</label>
+            <input type="password" id="reg-password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">註冊</button>
+        </form>
+      </div>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert alert-warning mt-3">
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
     </div>
-    
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCi1YsgTkJMss3TVBnK8QERbmWgChAeBgM",
+      authDomain: "green-login-app.firebaseapp.com",
+      projectId: "green-login-app",
+      storageBucket: "green-login-app.appspot.com",
+      messagingSenderId: "483028320367",
+      appId: "1:483028320367:web:d66bbc0d7c9ff33dcf8d9a",
+      measurementId: "G-M66G4BRD36"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    document.getElementById('google-signin').addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .then(result => result.user.getIdToken())
+        .then(idToken => {
+          return fetch('/firebase_login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+          });
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            window.location.href = '/dashboard';
+          } else {
+            alert('登入失敗：' + data.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('登入發生錯誤');
+        });
+    });
+  </script>
+
+  <!-- 切換 Tab -->
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('d-none');
+        tab.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.remove('d-none');
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
 </body>
 </html>

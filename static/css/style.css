@@ -303,3 +303,12 @@ table th {
       margin-bottom: 10px;
   }
 }
+.btn-google {
+  background-color: #28a745;
+  color: white;
+  border: none;
+}
+
+.btn-google:hover {
+  background-color: #218838;
+}
