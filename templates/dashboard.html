@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的綠色代幣</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>永續交通小幫手</h1>
+            <div class="user-info">
+                <p>你好，{{ session['username'] }}！</p>
+                <a href="{{ url_for('logout') }}" class="btn-logout">登出</a>
+            </div>
+        </header>
+        
+        <div class="token-summary">
+            <div class="token-badge">
+                <h2>我的綠色代幣</h2>
+                <p class="token-count">{{ tokens }}</p>
+            </div>
+            <div class="impact-info">
+                <p>您已經幫助減少了約 <span class="impact-number">{{ tokens // 2 }}</span> kg的碳排放！</p>
+            </div>
+        </div>
+        
+        <div class="record-activity">
+            <h2>記錄今日綠色出行</h2>
+            <div id="tracking-container">
+                <div class="form-group">
+                    <label for="activity-type">出行方式</label>
+                    <select id="activity-type" name="activity_type" required>
+                        <option value="">-- 請選擇 --</option>
+                        <option value="walking">走路</option>
+                        <option value="public_transport">大眾運輸</option>
+                    </select>
+                </div>
+                
+                <div id="tracking-controls">
+                    <button id="start-tracking" class="btn btn-start">開始記錄</button>
+                    <button id="stop-tracking" class="btn btn-stop" disabled>停止記錄</button>
+                </div>
+                
+                <div id="tracking-status" class="hidden">
+                    <p>正在記錄您的行程...</p>
+                    <div class="progress-container">
+                        <div class="progress-label">已行走距離: <span id="distance-value">0.00</span> 公里</div>
+                        <div class="progress-label">已記錄時間: <span id="time-value">00:00:00</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="result-message" class="hidden"></div>
+        
+        <div class="activity-history">
+            <h2>歷史記錄</h2>
+            {% if history %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>活動</th>
+                            <th>距離 (公尺)</th>
+                            <th>獲得代幣</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in history|reverse %}
+                            <tr>
+                                <td>{{ item.date }}</td>
+                                <td>{{ item.activity }}</td>
+                                <td>{{ item.distance }}</td>
+                                <td>{{ item.tokens }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="no-records">尚無活動記錄</p>
+            {% endif %}
+        </div>
+        
+        <div class="rewards-section">
+            <h2>獎勵兌換</h2>
+            <div class="rewards-list">
+                <div class="reward-card">
+                    <h3>公車一日券</h3>
+                    <p>100 代幣</p>
+                    <button class="btn-reward" onclick="alert('功能開發中')">兌換</button>
+                </div>
+                <div class="reward-card">
+                    <h3>捷運折扣券</h3>
+                    <p>150 代幣</p>
+                    <button class="btn-reward" onclick="alert('功能開發中')">兌換</button>
+                </div>
+                <div class="reward-card">
+                    <h3>環保商品折扣</h3>
+                    <p>200 代幣</p>
+                    <button class="btn-reward" onclick="alert('功能開發中')">兌換</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

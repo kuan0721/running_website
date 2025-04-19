@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>綠色代幣系統</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>永續交通小幫手</h1>
+            <p>記錄您的綠色交通選擇，獲得環保代幣!</p>
+        </header>
+        
+        <div class="auth-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('login')">登入</button>
+                <button class="tab-btn" onclick="showTab('register')">註冊</button>
+            </div>
+            
+            <div id="login" class="tab-content active">
+                <form action="{{ url_for('login') }}" method="post">
+                    <div class="form-group">
+                        <label for="login-username">使用者名稱</label>
+                        <input type="text" id="login-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">密碼</label>
+                        <input type="password" id="login-password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">登入</button>
+                </form>
+            </div>
+            
+            <div id="register" class="tab-content">
+                <form action="{{ url_for('register') }}" method="post">
+                    <div class="form-group">
+                        <label for="reg-username">使用者名稱</label>
+                        <input type="text" id="reg-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">密碼</label>
+                        <input type="password" id="reg-password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">註冊</button>
+                </form>
+            </div>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <p class="message">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
