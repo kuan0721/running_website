@@ -461,91 +461,232 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+let map, control = null;
+
 document.addEventListener("DOMContentLoaded", function () {
-    const mapElement = document.getElementById("map");
-    if (!mapElement) return; // 若沒有地圖區塊就跳過
-  
-    const map = L.map("map").setView([23.5, 121], 7); // 預設台灣中間位置
-  
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "© OpenStreetMap",
-    }).addTo(map);
-  
-    let control = null;
-  
-    document.getElementById("planRoute").addEventListener("click", async () => {
-      const start = document.getElementById("start").value;
-      const end = document.getElementById("end").value;
-  
-      const getCoords = async (place) => {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`);
-        const data = await res.json();
-        if (data.length === 0) throw new Error(`找不到地點: ${place}`);
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      };
-  
-      try {
-        const [startCoord, endCoord] = await Promise.all([getCoords(start), getCoords(end)]);
-  
-        if (control) map.removeControl(control);
-  
-        control = L.Routing.control({
-            waypoints: [
-              L.latLng(startCoord[0], startCoord[1]),
-              L.latLng(endCoord[0], endCoord[1])
-            ],
-            routeWhileDragging: false,
-            show: false,  // ← 關閉預設指示面板
-            formatter: new L.Routing.Formatter(L.Routing.Localization['zh-TW'])
-          }).addTo(map);
-          
-          
-  
-      } catch (err) {
-        alert("規劃路線錯誤：" + err.message);
-      }
-    });
+  // 1. 地圖初始化
+  const mapElement = document.getElementById("map");
+  if (!mapElement) return; // 若沒有地圖區塊就跳過
+
+  map = L.map("map").setView([23.5, 121], 7);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "© OpenStreetMap",
+  }).addTo(map);
+
+  // 2. 路線規劃
+  document.getElementById("planRoute").addEventListener("click", async () => {
+    const start = document.getElementById("start").value;
+    const end   = document.getElementById("end").value;
+
+    const getCoords = async (place) => {
+      const res  = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`
+      );
+      const data = await res.json();
+      if (!data.length) throw new Error(`找不到地點：${place}`);
+      return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+    };
+
+    try {
+      const [startCoord, endCoord] = await Promise.all([
+        getCoords(start),
+        getCoords(end)
+      ]);
+
+      if (control) map.removeControl(control);
+
+      control = L.Routing.control({
+        waypoints: [
+          L.latLng(startCoord[0], startCoord[1]),
+          L.latLng(endCoord[0], endCoord[1])
+        ],
+        routeWhileDragging: false,
+        show: false,  // 關閉預設指示面板
+        formatter: new L.Routing.Formatter(L.Routing.Localization['zh-TW'])
+      }).addTo(map);
+
+    } catch (err) {
+      alert("規劃路線錯誤：" + err.message);
+    }
   });
-  L.Routing.Localization = L.Routing.Localization || {};
-L.Routing.Localization['zh-TW'] = {
+
+  // 3. 追蹤元素綁定
+  const startTrackingBtn   = document.getElementById("start-tracking");
+  const stopTrackingBtn    = document.getElementById("stop-tracking");
+  const trackingStatus     = document.getElementById("tracking-status");
+  const distanceValue      = document.getElementById("distance-value");
+  const timeValue          = document.getElementById("time-value");
+  const activityTypeSelect = document.getElementById("activity-type");
+
+  let watchId       = null;
+  let startTime     = null;
+  let previousPos   = null;
+  let totalDistance = 0;
+  let timer         = null;
+
+  // 開始記錄
+  startTrackingBtn.addEventListener("click", function () {
+    const activityType = activityTypeSelect.value;
+    if (!activityType) {
+      alert("請先選擇出行方式");
+      return;
+    }
+    if (!navigator.geolocation) {
+      alert("此瀏覽器不支援地理位置功能");
+      return;
+    }
+
+    // —— 新增：如果已經有規劃好的路線，就放大到該路線範圍 —— 
+    if (control && control._routes && control._routes[0]) {
+      const coords = control._routes[0].coordinates;
+      const bounds = L.latLngBounds(coords);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+
+    // 呼叫原本的 startTracking
+    startTrackingBtn.disabled = true;
+    stopTrackingBtn.disabled  = false;
+    trackingStatus.classList.remove("hidden");
+    distanceValue.textContent = "0.00";
+    timeValue.textContent     = "00:00:00";
+    totalDistance = 0;
+    previousPos   = null;
+    startTime     = new Date();
+
+    timer = setInterval(updateTimer, 1000);
+    watchId = navigator.geolocation.watchPosition(
+      handlePositionUpdate,
+      handlePositionError,
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  });
+
+  // 停止記錄
+  stopTrackingBtn.addEventListener("click", function () {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      clearInterval(timer);
+      startTrackingBtn.disabled = false;
+      stopTrackingBtn.disabled  = true;
+      recordActivity();
+    }
+  });
+
+  // 處理位置更新
+  function handlePositionUpdate(position) {
+    const curr = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude
+    };
+
+    if (previousPos) {
+      const segment = calculateDistance(
+        previousPos.lat, previousPos.lng,
+        curr.lat, curr.lng
+      );
+      if (segment > 0.002) {
+        totalDistance += segment;
+        distanceValue.textContent = totalDistance.toFixed(2);
+      }
+    }
+    previousPos = curr;
+  }
+
+  // 位置錯誤處理
+  function handlePositionError(err) {
+    console.error("位置追蹤錯誤：", err);
+    alert("無法取得位置：請確認授權或網路狀態");
+    navigator.geolocation.clearWatch(watchId);
+    clearInterval(timer);
+    startTrackingBtn.disabled = false;
+    stopTrackingBtn.disabled  = true;
+  }
+
+  // 計算兩點距離（公里）
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI/180;
+    const dLon = (lon2 - lon1) * Math.PI/180;
+    const a = Math.sin(dLat/2)**2
+            + Math.cos(lat1 * Math.PI/180)
+            * Math.cos(lat2 * Math.PI/180)
+            * Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // 計時器更新
+  function updateTimer() {
+    const now = new Date();
+    const elapsed = new Date(now - startTime);
+    const hh = String(elapsed.getUTCHours()).padStart(2, "0");
+    const mm = String(elapsed.getUTCMinutes()).padStart(2, "0");
+    const ss = String(elapsed.getUTCSeconds()).padStart(2, "0");
+    timeValue.textContent = `${hh}:${mm}:${ss}`;
+  }
+
+  // 發送到後端記錄
+  function recordActivity() {
+    const activityType = activityTypeSelect.value;
+    const distance = parseFloat(distanceValue.textContent);
+
+    if (distance < 0.1) {
+      alert("記錄距離太短，至少 0.1 公里");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("activity_type", activityType);
+    formData.append("distance", distance);
+
+    fetch("/record_activity", {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(`完成！獲得 ${data.tokens_earned} 代幣，總計 ${data.total_tokens}`);
+          location.reload();
+        } else {
+          alert(data.message || "記錄失敗");
+        }
+      })
+      .catch(() => alert("伺服器錯誤，請稍後再試"));
+  }
+});
+
+// 4. 路徑指令本地化（不需改動）
+L.Routing.Localization = L.Routing.Localization || {};
+L.Routing.Localization["zh-TW"] = {
   directions: {
-    north: "北",
-    northeast: "東北",
-    east: "東",
-    southeast: "東南",
-    south: "南",
-    southwest: "西南",
-    west: "西",
-    northwest: "西北"
+    north: "北", northeast: "東北", east: "東", southeast: "東南",
+    south: "南", southwest: "西南", west: "西", northwest: "西北"
   },
   instructions: {
-    // format: instruction_type: ['translation string', has_exit_number]
-    'straight': ['繼續直走', false],
-    'slight_right': ['稍微向右走', false],
-    'right': ['右轉', false],
-    'sharp_right': ['大右轉', false],
-    'turn_around': ['回轉', false],
-    'sharp_left': ['大左轉', false],
-    'left': ['左轉', false],
-    'slight_left': ['稍微向左走', false],
-    'depart': ['從 %s 出發', false],
-    'arrive': ['到達 %s', false],
-    'merge': ['往 %s 匯入', false],
-    'on ramp': ['走匝道 %s', false],
-    'off ramp': ['從匝道離開 %s', false],
-    'fork': ['在岔路選擇 %s', false],
-    'end of road': ['在路的盡頭向 %s', false],
-    'use lane': ['使用%s車道', false],
-    'continue': ['在 %s 繼續直行', false],
-    'roundabout': ['在圓環走 %s 個出口，往 %s', true],
-    'rotary': ['在圓環走 %s 個出口，往 %s', true],
-    'roundabout turn': ['離開圓環，往 %s', false],
-    'notification': ['注意 %s', false],
-    'exit roundabout': ['離開圓環', false],
-    'exit rotary': ['離開圓環', false],
-    'use lane': ['使用 %s 車道', false]
+    straight: ["繼續直走", false],
+    slight_right: ["稍微向右走", false],
+    right: ["右轉", false],
+    sharp_right: ["大右轉", false],
+    turn_around: ["回轉", false],
+    sharp_left: ["大左轉", false],
+    left: ["左轉", false],
+    slight_left: ["稍微向左走", false],
+    depart: ["從 %s 出發", false],
+    arrive: ["到達 %s", false],
+    merge: ["往 %s 匯入", false],
+    "on ramp": ["走匝道 %s", false],
+    "off ramp": ["從匝道離開 %s", false],
+    fork: ["在岔路選擇 %s", false],
+    "end of road": ["在路的盡頭向 %s", false],
+    continue: ["在 %s 繼續直行", false],
+    roundabout: ["在圓環走 %s 個出口，往 %s", true],
+    rotary: ["在圓環走 %s 個出口，往 %s", true],
+    "roundabout turn": ["離開圓環，往 %s", false],
+    notification: ["注意 %s", false],
+    "exit roundabout": ["離開圓環", false],
+    "exit rotary": ["離開圓環", false]
   }
 };
-
   
