@@ -6,6 +6,7 @@
     <title>綠色行動</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
     <div class="container">
@@ -43,7 +44,13 @@
                 </div>
             </div>
         </div>
-        
+        <div class="route-planner my-4">
+            <h3>規劃路徑</h3>
+            <input type="text" id="start" placeholder="起點（可輸入地址）" class="form-control mb-2" />
+            <input type="text" id="end" placeholder="目的地（可輸入地址）" class="form-control mb-2" />
+            <button id="planRoute" class="btn btn-success mb-3">規劃路線</button>
+            <div id="map" style="height: 400px;"></div>
+          </div>
         <div class="record-activity">
             <h2>記錄今日綠色出行</h2>
             <div id="tracking-container">
@@ -126,5 +133,7 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 </body>
 </html>

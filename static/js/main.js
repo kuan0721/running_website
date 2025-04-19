@@ -460,3 +460,91 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const mapElement = document.getElementById("map");
+    if (!mapElement) return; // 若沒有地圖區塊就跳過
+  
+    const map = L.map("map").setView([23.5, 121], 7); // 預設台灣中間位置
+  
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap",
+    }).addTo(map);
+  
+    let control = null;
+  
+    document.getElementById("planRoute").addEventListener("click", async () => {
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+  
+      const getCoords = async (place) => {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`);
+        const data = await res.json();
+        if (data.length === 0) throw new Error(`找不到地點: ${place}`);
+        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      };
+  
+      try {
+        const [startCoord, endCoord] = await Promise.all([getCoords(start), getCoords(end)]);
+  
+        if (control) map.removeControl(control);
+  
+        control = L.Routing.control({
+            waypoints: [
+              L.latLng(startCoord[0], startCoord[1]),
+              L.latLng(endCoord[0], endCoord[1])
+            ],
+            routeWhileDragging: false,
+            formatter: new L.Routing.Formatter(L.Routing.Localization['zh-TW'])
+          }).addTo(map);
+          
+          
+  
+      } catch (err) {
+        alert("規劃路線錯誤：" + err.message);
+      }
+    });
+  });
+  L.Routing.Localization = L.Routing.Localization || {};
+L.Routing.Localization['zh-TW'] = {
+  directions: {
+    north: "北",
+    northeast: "東北",
+    east: "東",
+    southeast: "東南",
+    south: "南",
+    southwest: "西南",
+    west: "西",
+    northwest: "西北"
+  },
+  instructions: {
+    // format: instruction_type: ['translation string', has_exit_number]
+    'straight': ['繼續直走', false],
+    'slight_right': ['稍微向右走', false],
+    'right': ['右轉', false],
+    'sharp_right': ['大右轉', false],
+    'turn_around': ['回轉', false],
+    'sharp_left': ['大左轉', false],
+    'left': ['左轉', false],
+    'slight_left': ['稍微向左走', false],
+    'depart': ['從 %s 出發', false],
+    'arrive': ['到達 %s', false],
+    'merge': ['往 %s 匯入', false],
+    'on ramp': ['走匝道 %s', false],
+    'off ramp': ['從匝道離開 %s', false],
+    'fork': ['在岔路選擇 %s', false],
+    'end of road': ['在路的盡頭向 %s', false],
+    'use lane': ['使用%s車道', false],
+    'continue': ['在 %s 繼續直行', false],
+    'roundabout': ['在圓環走 %s 個出口，往 %s', true],
+    'rotary': ['在圓環走 %s 個出口，往 %s', true],
+    'roundabout turn': ['離開圓環，往 %s', false],
+    'notification': ['注意 %s', false],
+    'exit roundabout': ['離開圓環', false],
+    'exit rotary': ['離開圓環', false],
+    'use lane': ['使用 %s 車道', false]
+  }
+};
+
+  
