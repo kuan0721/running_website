@@ -90,7 +90,7 @@ def record_activity():
     users[username]['tokens'] += tokens_earned
     users[username]['history'].append({
         'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
-        'activity': '走路' if activity_type == 'walking' else '大眾運輸',
+        'activity': '跑路' if activity_type == 'walking' else '大眾運輸',
         'distance': distance,
         'tokens': tokens_earned
     })
